@@ -1,16 +1,18 @@
-name: CI/CD for Next.js Project
+# .github/workflows/ci.yml
+name: CI - Test, Lint, Build
 
 on:
   push:
-    branches:
-      - main  # chạy khi push lên nhánh main
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-  build-and-test:
+  ci:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clone source code
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Setup Node.js
@@ -18,8 +20,19 @@ jobs:
         with:
           node-version: 18
 
+      - name: Cache npm dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Lint code
+        run: npm run lint
 
       - name: Run tests
         run: npm run test
